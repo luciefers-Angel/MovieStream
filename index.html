@@ -2866,7 +2866,6 @@ selectFileBtn.textContent = 'Select File';
 document.addEventListener('DOMContentLoaded', function() {
     //const CORS_PROXY = "https://cors-anywhere.herokuapp.com/";
     const CORS_PROXY = "https://api.allorigins.win/raw?url=";
-
     const JSON_URL = "https://raw.githubusercontent.com/luciefers-Angel/MovieStream/main/cineflix-data.json";
 
     async function fetchMovieData() {
@@ -2981,5 +2980,38 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('content-container');
+  if (container) {
+    container.addEventListener('click', function (e) {
+      const item = e.target.closest('.content-item');
+      if (item) {
+        const modal = document.getElementById('video-player-modal');
+        const videoPlayer = document.getElementById('video-player');
+
+        // Optional: Get data from item for dynamic video src (example assumes data-src attribute)
+        const videoSrc = item.getAttribute('data-video-src') || "https://path-to-your-default-movie.mp4";
+        videoPlayer.src = videoSrc;
+
+        modal.classList.add('active');
+      }
+    });
+  }
+});
+</script>
+<script>
+document.getElementById('close-video-modal').addEventListener('click', () => {
+  const modal = document.getElementById('video-player-modal');
+  const videoPlayer = document.getElementById('video-player');
+  videoPlayer.pause();
+  videoPlayer.src = '';
+  modal.classList.remove('active');
+});
+</script>
+
+
+
 </body>
 </html>
