@@ -1,0 +1,2774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineFlix - Watch Movies, TV Shows & Live TV</title>
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>tailwind.config={theme:{extend:{colors:{primary:'#3b82f6',secondary:'#10b981'},borderRadius:{'none':'0px','sm':'4px',DEFAULT:'8px','md':'12px','lg':'16px','xl':'20px','2xl':'24px','3xl':'32px','full':'9999px','button':'8px'}}}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<style>
+:where([class^="ri-"])::before { content: "\f3c2"; }
+body {
+font-family: 'Inter', sans-serif;
+}
+.carousel {
+scroll-snap-type: x mandatory;
+scroll-behavior: smooth;
+}
+.carousel-item {
+scroll-snap-align: start;
+flex-shrink: 0;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+-webkit-appearance: none;
+margin: 0;
+}
+.custom-scrollbar::-webkit-scrollbar {
+width: 6px;
+height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+background: #f1f1f1;
+border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+background: #c1c1c1;
+border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+background: #a1a1a1;
+}
+.search-results {
+max-height: 400px;
+overflow-y: auto;
+}
+.modal {
+opacity: 0;
+visibility: hidden;
+transition: opacity 0.3s, visibility 0.3s;
+}
+.modal.active {
+opacity: 1;
+visibility: visible;
+}
+.video-player-container {
+aspect-ratio: 16/9;
+}
+.switch-toggle input[type="checkbox"] {
+display: none;
+}
+.switch-toggle label {
+cursor: pointer;
+position: relative;
+}
+.switch-toggle label::before {
+content: '';
+position: absolute;
+width: 100%;
+height: 100%;
+background-color: #e5e7eb;
+border-radius: 999px;
+transition: all 0.3s;
+}
+.switch-toggle label::after {
+content: '';
+position: absolute;
+top: 2px;
+left: 2px;
+width: 18px;
+height: 18px;
+background-color: white;
+border-radius: 50%;
+transition: all 0.3s;
+}
+.switch-toggle input[type="checkbox"]:checked + label::before {
+background-color: #3b82f6;
+}
+.switch-toggle input[type="checkbox"]:checked + label::after {
+transform: translateX(100%);
+left: calc(100% - 20px);
+}
+.skeleton-loading {
+animation: skeleton-loading 1.5s infinite;
+}
+@keyframes skeleton-loading {
+0%, 100% {
+opacity: 0.5;
+}
+50% {
+opacity: 1;
+}
+}
+.dropdown-content {
+display: none;
+position: absolute;
+z-index: 50;
+}
+.dropdown:hover .dropdown-content {
+display: block;
+}
+.grid-view {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+gap: 1rem;
+}
+@media (max-width: 768px) {
+.grid-view {
+grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+}
+.list-view {
+display: flex;
+flex-direction: column;
+gap: 1rem;
+}
+.theme-light {
+--bg-primary: #ffffff;
+--text-primary: #1f2937;
+--text-secondary: #4b5563;
+--border-color: #e5e7eb;
+--card-bg: #f9fafb;
+--hover-bg: #f3f4f6;
+}
+.theme-dark {
+--bg-primary: #111827;
+--text-primary: #f9fafb;
+--text-secondary: #d1d5db;
+--border-color: #374151;
+--card-bg: #1f2937;
+--hover-bg: #374151;
+}
+.theme-light {
+background-color: var(--bg-primary);
+color: var(--text-primary);
+}
+.theme-dark {
+background-color: var(--bg-primary);
+color: var(--text-primary);
+}
+</style>
+</head>
+<body class="theme-light min-h-screen">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-white shadow-sm dark:bg-gray-900 transition-colors">
+<div class="container mx-auto px-4 py-3 flex items-center justify-between">
+<div class="flex items-center">
+<h1 class="text-2xl font-['Pacifico'] text-primary mr-2">CineFlix</h1>
+<span class="text-xs bg-primary text-white px-2 py-0.5 rounded-full">BETA</span>
+</div>
+<div class="flex items-center space-x-4">
+<div class="relative" id="theme-toggle-container">
+<button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<i class="ri-sun-line ri-lg dark:hidden"></i>
+<i class="ri-moon-line ri-lg hidden dark:block"></i>
+</button>
+</div>
+<div class="relative">
+<button id="profile-btn" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+<i class="ri-user-line ri-lg"></i>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="container mx-auto px-4 py-6">
+<!-- Carousel -->
+<div class="relative mb-8 rounded-lg overflow-hidden shadow-lg">
+<div id="carousel" class="carousel flex overflow-x-auto custom-scrollbar snap-x snap-mandatory">
+<div class="carousel-item relative w-full flex-shrink-0">
+<img src="https://readdy.ai/api/search-image?query=cinematic%20scene%20from%20Dune%20movie%20with%20dramatic%20lighting%2C%20desert%20landscape%2C%20sci-fi%20elements%2C%20high%20quality%20poster%2C%20professional%20movie%20banner%2C%20epic%20scale&width=1200&height=500&seq=1&orientation=landscape" alt="Dune" class="w-full h-[500px] object-cover">
+<div class="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent flex items-center">
+<div class="p-8 max-w-2xl">
+<span class="inline-block px-3 py-1 bg-primary text-white text-sm font-semibold rounded-full mb-4">New Release</span>
+<h2 class="text-4xl font-bold text-white mb-4">Dune: Part Two</h2>
+<p class="text-gray-200 mb-6">Follow the mythic journey of Paul Atreides as he unites with Chani and the Fremen while on a path of revenge against the conspirators who destroyed his family.</p>
+<div class="flex space-x-4">
+<button class="flex items-center bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-play-fill ri-lg mr-2"></i> Watch Now
+</button>
+<button class="flex items-center bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-add-line ri-lg mr-2"></i> Add to List
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="carousel-item relative w-full flex-shrink-0">
+<img src="https://readdy.ai/api/search-image?query=cinematic%20scene%20from%20Oppenheimer%20movie%20with%20dramatic%20lighting%2C%20historical%20setting%2C%20intense%20atmosphere%2C%20high%20quality%20poster%2C%20professional%20movie%20banner%2C%20epic%20scale&width=1200&height=500&seq=2&orientation=landscape" alt="Oppenheimer" class="w-full h-[500px] object-cover">
+<div class="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent flex items-center">
+<div class="p-8 max-w-2xl">
+<span class="inline-block px-3 py-1 bg-primary text-white text-sm font-semibold rounded-full mb-4">Award Winner</span>
+<h2 class="text-4xl font-bold text-white mb-4">Oppenheimer</h2>
+<p class="text-gray-200 mb-6">The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb during World War II.</p>
+<div class="flex space-x-4">
+<button class="flex items-center bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-play-fill ri-lg mr-2"></i> Watch Now
+</button>
+<button class="flex items-center bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-add-line ri-lg mr-2"></i> Add to List
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="carousel-item relative w-full flex-shrink-0">
+<img src="https://readdy.ai/api/search-image?query=cinematic%20scene%20from%20Squid%20Game%20TV%20series%20with%20dramatic%20lighting%2C%20Korean%20actors%2C%20intense%20atmosphere%2C%20high%20quality%20poster%2C%20professional%20TV%20show%20banner%2C%20epic%20scale&width=1200&height=500&seq=3&orientation=landscape" alt="Squid Game" class="w-full h-[500px] object-cover">
+<div class="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent flex items-center">
+<div class="p-8 max-w-2xl">
+<span class="inline-block px-3 py-1 bg-primary text-white text-sm font-semibold rounded-full mb-4">Popular Series</span>
+<h2 class="text-4xl font-bold text-white mb-4">Squid Game: Season 2</h2>
+<p class="text-gray-200 mb-6">Hundreds of cash-strapped players accept a strange invitation to compete in children's games. Inside, a tempting prize awaits with deadly high stakes.</p>
+<div class="flex space-x-4">
+<button class="flex items-center bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-play-fill ri-lg mr-2"></i> Watch Now
+</button>
+<button class="flex items-center bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-add-line ri-lg mr-2"></i> Add to List
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Carousel Navigation -->
+<div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+<button class="w-3 h-3 rounded-full bg-white/50 carousel-dot active" data-index="0"></button>
+<button class="w-3 h-3 rounded-full bg-white/50 carousel-dot" data-index="1"></button>
+<button class="w-3 h-3 rounded-full bg-white/50 carousel-dot" data-index="2"></button>
+</div>
+<!-- Carousel Controls -->
+<button class="absolute left-4 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors" id="carousel-prev">
+<i class="ri-arrow-left-s-line ri-lg"></i>
+</button>
+<button class="absolute right-4 top-1/2 transform -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors" id="carousel-next">
+<i class="ri-arrow-right-s-line ri-lg"></i>
+</button>
+</div>
+<!-- Search and View Toggle -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+<div class="relative w-full md:w-2/3">
+<div class="relative">
+<input type="text" id="search-input" placeholder="Search for movies, TV shows, or live channels..." class="w-full pl-10 pr-4 py-3 bg-gray-100 dark:bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white">
+<div class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-500 dark:text-gray-400">
+<i class="ri-search-line"></i>
+</div>
+</div>
+<!-- Search Results -->
+<div id="search-results" class="search-results absolute z-40 left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 hidden">
+<!-- Search results will be populated here -->
+</div>
+</div>
+<div class="flex items-center space-x-4 w-full md:w-auto">
+<span class="text-gray-700 dark:text-gray-300">View:</span>
+<div class="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-full">
+<button id="grid-view-btn" class="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+<i class="ri-grid-fill"></i>
+</button>
+<button id="list-view-btn" class="flex items-center justify-center w-8 h-8 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
+<i class="ri-list-check"></i>
+</button>
+</div>
+</div>
+</div>
+<!-- Navigation Tabs -->
+<div class="mb-8 border-b border-gray-200 dark:border-gray-700">
+<div class="flex flex-wrap -mb-px">
+<div class="dropdown relative mr-2">
+<button id="all-content-btn" class="inline-flex items-center px-4 py-3 text-sm font-medium text-primary border-b-2 border-primary">
+All Content
+<i class="ri-arrow-down-s-line ml-1"></i>
+</button>
+<div class="dropdown-content mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 min-w-[200px]">
+<div class="p-2">
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Latest Update
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Year
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Rating
+</button>
+</div>
+</div>
+</div>
+<div class="dropdown relative mr-2">
+<button id="movies-btn" class="inline-flex items-center px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+Movies
+<i class="ri-arrow-down-s-line ml-1"></i>
+</button>
+<div class="dropdown-content mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 min-w-[200px]">
+<div class="p-2">
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Hollywood
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Korean
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Chinese
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Japanese
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Tagalog
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Bollywood
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Thai
+</button>
+</div>
+</div>
+</div>
+<div class="dropdown relative mr-2">
+<button id="tv-series-btn" class="inline-flex items-center px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+TV Series
+<i class="ri-arrow-down-s-line ml-1"></i>
+</button>
+<div class="dropdown-content mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 min-w-[200px]">
+<div class="p-2">
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Hollywood Series
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+K-Drama
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+C-Drama
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+J-Drama
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Tagalog Series
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Bollywood Series
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Thai Series
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Anime Series
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Animated Series
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Cartoon Series
+</button>
+</div>
+</div>
+</div>
+<div class="dropdown relative">
+<button id="live-tv-btn" class="inline-flex items-center px-4 py-3 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 border-b-2 border-transparent hover:border-gray-300 dark:hover:border-gray-600">
+Live TV
+<i class="ri-arrow-down-s-line ml-1"></i>
+</button>
+<div class="dropdown-content mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 min-w-[200px]">
+<div class="p-2">
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+News Channels
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Sports Channels
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Movie Channels
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Educational Channels
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Cartoon Network
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Entertainment Channels
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Shop Channels
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Religion Channels
+</button>
+<div class="border-t border-gray-200 dark:border-gray-700 my-2"></div>
+<div class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+By Country
+</div>
+<div class="max-h-40 overflow-y-auto custom-scrollbar">
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+United States
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+United Kingdom
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Philippines
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Japan
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+South Korea
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+China
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+India
+</button>
+<button class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+Thailand
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Grid -->
+<div id="content-container" class="grid-view">
+<!-- Login Modal -->
+<div id="login-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden">
+<div class="p-6">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Admin Login</h2>
+<button id="close-login-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+<i class="ri-close-line ri-lg"></i>
+</button>
+</div>
+<form id="login-form">
+<div class="mb-4">
+<label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Username</label>
+<input type="text" id="username" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter your username" required>
+</div>
+<div class="mb-6">
+<label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+<input type="password" id="password" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter your password" required>
+</div>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center">
+<input type="checkbox" id="remember-me" class="hidden">
+<div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded flex items-center justify-center mr-2 custom-checkbox">
+<i class="ri-check-line text-white text-xs hidden"></i>
+</div>
+<label for="remember-me" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Remember me</label>
+</div>
+</div>
+<button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-button font-medium transition whitespace-nowrap">
+Login
+</button>
+</form>
+</div>
+</div>
+</div>
+<!-- Video Player Modal -->
+<div id="video-player-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black">
+<div class="relative w-full max-w-5xl mx-4">
+<button id="close-video-modal" class="absolute -top-12 right-0 text-white hover:text-gray-300 z-10">
+<i class="ri-close-line ri-2x"></i>
+</button>
+<div class="video-player-container bg-black rounded-lg overflow-hidden">
+<video id="video-player" class="w-full h-full" controls>
+
+Your browser does not support the video tag.
+</video>
+</div>
+<div class="flex justify-between mt-4">
+<div class="flex items-center space-x-3">
+<div class="relative">
+<button id="server-selector" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-button whitespace-nowrap">
+<span>Server 1</span>
+<i class="ri-arrow-down-s-line"></i>
+</button>
+<div id="server-options" class="absolute left-0 top-full mt-2 bg-gray-800 rounded-lg shadow-lg hidden">
+<div class="p-2">
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded server-option" data-server="1">Server 1</button>
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded server-option" data-server="2">Server 2</button>
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded server-option" data-server="3">Server 3</button>
+</div>
+</div>
+</div>
+<div class="relative">
+<button id="subtitle-selector" class="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-button whitespace-nowrap">
+<span>English</span>
+<i class="ri-arrow-down-s-line"></i>
+</button>
+<div id="subtitle-options" class="absolute left-0 top-full mt-2 bg-gray-800 rounded-lg shadow-lg hidden">
+<div class="p-2">
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded subtitle-option" data-subtitle="en">English</button>
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded subtitle-option" data-subtitle="es">Spanish</button>
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded subtitle-option" data-subtitle="fr">French</button>
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded subtitle-option" data-subtitle="de">German</button>
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded subtitle-option" data-subtitle="jp">Japanese</button>
+<button class="w-full text-left px-4 py-2 text-sm text-white hover:bg-gray-700 rounded subtitle-option" data-subtitle="ko">Korean</button>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center space-x-3">
+<button id="fit-screen" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-button whitespace-nowrap">
+Fit Screen
+</button>
+<button id="crop-screen" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-button whitespace-nowrap">
+Crop
+</button>
+<button id="normal-screen" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-button whitespace-nowrap">
+100%
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Season Modal -->
+<div id="season-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+<div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white" id="season-modal-title">Stranger Things</h2>
+<button id="close-season-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+<i class="ri-close-line ri-lg"></i>
+</button>
+</div>
+<div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="season-grid">
+<div class="season-item cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-season="1">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20Season%201%20poster%20with%2080s%20style%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=300&height=450&seq=16&orientation=portrait" alt="Season 1" class="w-full h-[200px] object-cover">
+<div class="p-3 bg-gray-100 dark:bg-gray-700">
+<h3 class="font-medium text-gray-900 dark:text-white">Season 1</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">8 Episodes</p>
+</div>
+</div>
+<div class="season-item cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-season="2">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20Season%202%20poster%20with%2080s%20style%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=300&height=450&seq=17&orientation=portrait" alt="Season 2" class="w-full h-[200px] object-cover">
+<div class="p-3 bg-gray-100 dark:bg-gray-700">
+<h3 class="font-medium text-gray-900 dark:text-white">Season 2</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">9 Episodes</p>
+</div>
+</div>
+<div class="season-item cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-season="3">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20Season%203%20poster%20with%2080s%20style%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=300&height=450&seq=18&orientation=portrait" alt="Season 3" class="w-full h-[200px] object-cover">
+<div class="p-3 bg-gray-100 dark:bg-gray-700">
+<h3 class="font-medium text-gray-900 dark:text-white">Season 3</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">8 Episodes</p>
+</div>
+</div>
+<div class="season-item cursor-pointer rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-season="4">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20Season%204%20poster%20with%2080s%20style%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=300&height=450&seq=19&orientation=portrait" alt="Season 4" class="w-full h-[200px] object-cover">
+<div class="p-3 bg-gray-100 dark:bg-gray-700">
+<h3 class="font-medium text-gray-900 dark:text-white">Season 4</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">9 Episodes</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Episode Modal -->
+<div id="episode-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden">
+<div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white" id="episode-modal-title">Stranger Things: Season 1</h2>
+<button id="close-episode-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+<i class="ri-close-line ri-lg"></i>
+</button>
+</div>
+<div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+<div class="space-y-4" id="episode-list">
+<div class="episode-item cursor-pointer flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-episode="1">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20episode%20thumbnail%20with%20kids%20on%20bicycles%20at%20night%2C%20professional%20TV%20show%20thumbnail%2C%20high%20quality&width=300&height=169&seq=20&orientation=landscape" alt="Episode 1" class="w-[150px] h-[84px] object-cover">
+<div class="p-4 flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-medium text-gray-900 dark:text-white">1. The Vanishing of Will Byers</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">On his way home from a friend's house, young Will sees something terrifying. Nearby, a sinister secret lurks in the depths of a government lab.</p>
+</div>
+<span class="text-sm text-gray-500 dark:text-gray-400">48m</span>
+</div>
+</div>
+</div>
+<div class="episode-item cursor-pointer flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-episode="2">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20episode%20thumbnail%20with%20Eleven%20character%2C%20professional%20TV%20show%20thumbnail%2C%20high%20quality&width=300&height=169&seq=21&orientation=landscape" alt="Episode 2" class="w-[150px] h-[84px] object-cover">
+<div class="p-4 flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-medium text-gray-900 dark:text-white">2. The Weirdo on Maple Street</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Lucas, Mike and Dustin try to talk to the girl they found in the woods. Hopper questions an anxious Joyce about an unsettling phone call.</p>
+</div>
+<span class="text-sm text-gray-500 dark:text-gray-400">55m</span>
+</div>
+</div>
+</div>
+<div class="episode-item cursor-pointer flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-episode="3">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20episode%20thumbnail%20with%20Christmas%20lights%20in%20dark%20room%2C%20professional%20TV%20show%20thumbnail%2C%20high%20quality&width=300&height=169&seq=22&orientation=landscape" alt="Episode 3" class="w-[150px] h-[84px] object-cover">
+<div class="p-4 flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-medium text-gray-900 dark:text-white">3. Holly, Jolly</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">An increasingly concerned Nancy looks for Barb and finds out what Jonathan's been up to. Joyce is convinced Will is trying to talk to her.</p>
+</div>
+<span class="text-sm text-gray-500 dark:text-gray-400">51m</span>
+</div>
+</div>
+</div>
+<div class="episode-item cursor-pointer flex bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow" data-episode="4">
+<img src="https://readdy.ai/api/search-image?query=Stranger%20Things%20episode%20thumbnail%20with%20government%20lab%20scientists%2C%20professional%20TV%20show%20thumbnail%2C%20high%20quality&width=300&height=169&seq=23&orientation=landscape" alt="Episode 4" class="w-[150px] h-[84px] object-cover">
+<div class="p-4 flex-1">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-medium text-gray-900 dark:text-white">4. The Body</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Refusing to believe Will is dead, Joyce tries to connect with her son. The boys give Eleven a makeover. Nancy and Jonathan form an unlikely alliance.</p>
+</div>
+<span class="text-sm text-gray-500 dark:text-gray-400">49m</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Admin Panel Modal -->
+<div id="admin-panel-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full h-full max-w-7xl max-h-[90vh] mx-4 overflow-hidden">
+<div class="flex flex-col h-full">
+<div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Admin Panel</h2>
+<button id="close-admin-panel" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+<i class="ri-close-line ri-lg"></i>
+</button>
+</div>
+<div class="flex-1 flex overflow-hidden">
+<!-- Sidebar -->
+<div class="w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto">
+<div class="space-y-6">
+<div>
+<h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Dashboard</h3>
+<div class="space-y-1">
+<button class="admin-nav-item flex items-center w-full px-3 py-2 text-sm font-medium text-primary bg-blue-50 dark:bg-blue-900/20 rounded-lg" data-section="dashboard">
+<i class="ri-dashboard-line mr-2"></i>
+Overview
+</button>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Content Management</h3>
+<div class="space-y-1">
+<button class="admin-nav-item flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg" data-section="movies">
+<i class="ri-film-line mr-2"></i>
+Movies
+</button>
+<button class="admin-nav-item flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg" data-section="series">
+<i class="ri-tv-line mr-2"></i>
+TV Series
+</button>
+<button class="admin-nav-item flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg" data-section="live">
+<i class="ri-broadcast-line mr-2"></i>
+Live TV
+</button>
+</div>
+</div>
+<div>
+<h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Data Management</h3>
+<div class="space-y-1">
+<button class="admin-nav-item flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg" data-section="import">
+<i class="ri-upload-line mr-2"></i>
+Import
+</button>
+<button class="admin-nav-item flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg" data-section="export">
+<i class="ri-download-line mr-2"></i>
+Export
+</button>
+<button id="delete-all-data" class="flex items-center w-full px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+<i class="ri-delete-bin-line mr-2"></i>
+Delete All Data
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content -->
+<div class="flex-1 overflow-y-auto p-6">
+<!-- Dashboard Section -->
+<div id="dashboard-section" class="admin-section">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Dashboard Overview</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<div class="flex items-center">
+<div class="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-blue-100 dark:bg-blue-900/30 text-primary rounded-lg">
+<i class="ri-film-line ri-lg"></i>
+</div>
+<div class="ml-4">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white">Movies</h3>
+<p class="text-3xl font-bold text-gray-900 dark:text-white">3</p>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<div class="flex items-center">
+<div class="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg">
+<i class="ri-tv-line ri-lg"></i>
+</div>
+<div class="ml-4">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white">TV Series</h3>
+<p class="text-3xl font-bold text-gray-900 dark:text-white">3</p>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<div class="flex items-center">
+<div class="flex-shrink-0 w-12 h-12 flex items-center justify-center bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+<i class="ri-broadcast-line ri-lg"></i>
+</div>
+<div class="ml-4">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white">Live TV</h3>
+<p class="text-3xl font-bold text-gray-900 dark:text-white">3</p>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Content Distribution</h3>
+<div id="content-distribution-chart" class="h-80"></div>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Content Added Over Time</h3>
+<div id="content-timeline-chart" class="h-80"></div>
+</div>
+</div>
+</div>
+<!-- Movies Section -->
+<div id="movies-section" class="admin-section hidden">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Movies</h2>
+<button id="add-movie-btn" class="flex items-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-add-line mr-2"></i> Add Movie
+</button>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+<div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+<thead class="bg-gray-50 dark:bg-gray-900">
+<tr>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Year</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rating</th>
+<th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=The%20Batman%20movie%20poster%20thumbnail%2C%20professional%20movie%20poster%20design%2C%20high%20quality&width=100&height=100&seq=24&orientation=squarish" alt="The Batman">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">The Batman</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Hollywood</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">2022</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">8.0</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=Parasite%20movie%20poster%20thumbnail%2C%20professional%20movie%20poster%20design%2C%20high%20quality&width=100&height=100&seq=25&orientation=squarish" alt="Parasite">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">Parasite</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Korean</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">2019</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">8.5</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=The%20Wandering%20Earth%20movie%20poster%20thumbnail%2C%20professional%20movie%20poster%20design%2C%20high%20quality&width=100&height=100&seq=26&orientation=squarish" alt="The Wandering Earth">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">The Wandering Earth</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Chinese</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">2019</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">7.9</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- TV Series Section -->
+<div id="series-section" class="admin-section hidden">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">TV Series</h2>
+<button id="add-series-btn" class="flex items-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-add-line mr-2"></i> Add TV Series
+</button>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+<div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+<thead class="bg-gray-50 dark:bg-gray-900">
+<tr>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Title</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Seasons</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rating</th>
+<th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=Squid%20Game%20TV%20series%20poster%20thumbnail%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=100&height=100&seq=27&orientation=squarish" alt="Squid Game">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">Squid Game</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">K-Drama</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">2</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">8.7</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=Stranger%20Things%20TV%20series%20poster%20thumbnail%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=100&height=100&seq=28&orientation=squarish" alt="Stranger Things">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">Stranger Things</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Hollywood Series</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">4</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">8.7</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=Attack%20on%20Titan%20anime%20series%20poster%20thumbnail%2C%20professional%20anime%20poster%20design%2C%20high%20quality&width=100&height=100&seq=29&orientation=squarish" alt="Attack on Titan">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">Attack on Titan</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Anime Series</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">4</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">9.0</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Live TV Section -->
+<div id="live-section" class="admin-section hidden">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white">Live TV</h2>
+<button id="add-live-btn" class="flex items-center bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium transition whitespace-nowrap">
+<i class="ri-add-line mr-2"></i> Add Live TV
+</button>
+</div>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+<div class="overflow-x-auto">
+<table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+<thead class="bg-gray-50 dark:bg-gray-900">
+<tr>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Channel</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Country</th>
+<th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+<th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=CNN%20news%20channel%20logo%20thumbnail%2C%20professional%20TV%20channel%20design%2C%20high%20quality&width=100&height=100&seq=30&orientation=squarish" alt="CNN">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">CNN</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">News</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">USA</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+Online
+</span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=ESPN%20sports%20channel%20logo%20thumbnail%2C%20professional%20TV%20channel%20design%2C%20high%20quality&width=100&height=100&seq=31&orientation=squarish" alt="ESPN"></div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">ESPN</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Sports</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Global</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+Online
+</span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+<tr>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center">
+<div class="flex-shrink-0 h-10 w-10">
+<img class="h-10 w-10 rounded object-cover" src="https://readdy.ai/api/search-image?query=KBS%20Korean%20broadcasting%20channel%20logo%20thumbnail%2C%20professional%20TV%20channel%20design%2C%20high%20quality&width=100&height=100&seq=32&orientation=squarish" alt="KBS">
+</div>
+<div class="ml-4">
+<div class="text-sm font-medium text-gray-900 dark:text-white">KBS</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Entertainment</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="text-sm text-gray-700 dark:text-gray-300">Korea</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+Maintenance
+</span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+<button class="text-primary hover:text-primary/80 mr-3">Edit</button>
+<button class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Import Section -->
+<div id="import-section" class="admin-section hidden">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Import Data</h2>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<div class="mb-6">
+<p class="text-gray-700 dark:text-gray-300 mb-4">Import content data from a JSON file. This will add new content to your existing library.</p>
+<div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center">
+<div class="flex flex-col items-center">
+<i class="ri-upload-cloud-2-line ri-3x text-gray-400 dark:text-gray-500 mb-4"></i>
+<p class="text-gray-700 dark:text-gray-300 mb-4">Drag and drop your JSON file here, or click to select a file</p>
+<input type="file" id="import-file" class="hidden" accept=".json">
+<button id="select-file-btn" class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium transition whitespace-nowrap">
+Select File
+</button>
+</div>
+</div>
+</div>
+<div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Import Options</h3>
+<div class="space-y-4">
+<div class="flex items-center">
+<input type="checkbox" id="overwrite-existing" class="hidden">
+<div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded flex items-center justify-center mr-2 custom-checkbox">
+<i class="ri-check-line text-white text-xs hidden"></i>
+</div>
+<label for="overwrite-existing" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Overwrite existing content with the same title</label>
+</div>
+<div class="flex items-center">
+<input type="checkbox" id="skip-validation" class="hidden">
+<div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded flex items-center justify-center mr-2 custom-checkbox">
+<i class="ri-check-line text-white text-xs hidden"></i>
+</div>
+<label for="skip-validation" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Skip validation (not recommended)</label>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<button id="import-btn" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button font-medium transition whitespace-nowrap" disabled>
+Import Data
+</button>
+</div>
+</div>
+</div>
+<!-- Export Section -->
+<div id="export-section" class="admin-section hidden">
+<h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Export Data</h2>
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+<div class="mb-6">
+<p class="text-gray-700 dark:text-gray-300 mb-4">Export your content data to a JSON file for backup or migration purposes.</p>
+</div>
+<div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Export Options</h3>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content Type</label>
+<div class="flex flex-wrap gap-3">
+<div class="flex items-center">
+<input type="checkbox" id="export-movies" class="hidden" checked>
+<div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded flex items-center justify-center mr-2 custom-checkbox active">
+<i class="ri-check-line text-white text-xs"></i>
+</div>
+<label for="export-movies" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Movies</label>
+</div>
+<div class="flex items-center">
+<input type="checkbox" id="export-series" class="hidden" checked>
+<div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded flex items-center justify-center mr-2 custom-checkbox active">
+<i class="ri-check-line text-white text-xs"></i>
+</div>
+<label for="export-series" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">TV Series</label>
+</div>
+<div class="flex items-center">
+<input type="checkbox" id="export-live" class="hidden" checked>
+<div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded flex items-center justify-center mr-2 custom-checkbox active">
+<i class="ri-check-line text-white text-xs"></i>
+</div>
+<label for="export-live" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">Live TV</label>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">File Format</label>
+<div class="flex items-center space-x-4">
+<div class="flex items-center">
+<input type="radio" id="format-json" name="format" class="hidden" checked>
+<div class="w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-full flex items-center justify-center mr-2 custom-radio active">
+<div class="w-2.5 h-2.5 bg-primary rounded-full"></div>
+</div>
+<label for="format-json" class="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">JSON</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<button id="export-btn" class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-button font-medium transition whitespace-nowrap">
+Export Data
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Movie Modal -->
+<div id="add-movie-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
+<div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add Movie</h2>
+<button id="close-add-movie-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+<i class="ri-close-line ri-lg"></i>
+</button>
+</div>
+<div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+<form id="add-movie-form">
+<div class="space-y-6">
+<div>
+<label for="movie-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Movie Type</label>
+<select id="movie-type" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white pr-8">
+<option value="">Select Type</option>
+<option value="hollywood">Hollywood</option>
+<option value="korean">Korean</option>
+<option value="chinese">Chinese</option>
+<option value="japanese">Japanese</option>
+<option value="tagalog">Tagalog</option>
+<option value="bollywood">Bollywood</option>
+<option value="thai">Thai</option>
+</select>
+</div>
+<div>
+<label for="movie-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+<input type="text" id="movie-title" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter movie title">
+</div>
+<div>
+<label for="movie-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+<textarea id="movie-description" rows="4" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter movie description"></textarea>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label for="movie-year" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+<input type="number" id="movie-year" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter release year">
+</div>
+<div>
+<label for="movie-rating" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</label>
+<input type="number" id="movie-rating" step="0.1" min="0" max="10" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter rating (0-10)">
+</div>
+</div>
+<div>
+<label for="movie-poster" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Poster Link</label>
+<input type="text" id="movie-poster" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter poster image URL">
+</div>
+<div>
+<label for="movie-thumbnail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Thumbnail Link</label>
+<input type="text" id="movie-thumbnail" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter thumbnail image URL">
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Subtitle Links</label>
+<button type="button" id="add-subtitle-btn" class="text-primary hover:text-primary/80 text-sm font-medium">
+<i class="ri-add-line mr-1"></i> Add More
+</button>
+</div>
+<div id="subtitle-container" class="space-y-3">
+<div class="flex items-center space-x-3">
+<select class="subtitle-language w-1/3 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white pr-8">
+<option value="en">English</option>
+<option value="es">Spanish</option>
+<option value="fr">French</option>
+<option value="de">German</option>
+<option value="jp">Japanese</option>
+<option value="ko">Korean</option>
+</select>
+<input type="text" class="subtitle-link flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter subtitle URL">
+</div>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Server Links</label>
+<button type="button" id="add-server-btn" class="text-primary hover:text-primary/80 text-sm font-medium">
+<i class="ri-add-line mr-1"></i> Add More
+</button>
+</div>
+<div id="server-container" class="space-y-3">
+<div class="flex items-center space-x-3">
+<input type="text" class="server-name w-1/3 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter video URL">
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8">
+<button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-button font-medium transition whitespace-nowrap">
+Add Movie
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- Add TV Series Modal -->
+<div id="add-series-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
+<div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add TV Series</h2>
+<button id="close-add-series-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+<i class="ri-close-line ri-lg"></i>
+</button>
+</div>
+<div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+<form id="add-series-form">
+<div class="space-y-6">
+<div>
+<label for="series-type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Series Type</label>
+<select id="series-type" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white pr-8">
+<option value="">Select Type</option>
+<option value="hollywood">Hollywood Series</option>
+<option value="kdrama">K-Drama</option>
+<option value="cdrama">C-Drama</option>
+<option value="jdrama">J-Drama</option>
+<option value="tagalog">Tagalog Series</option>
+<option value="bollywood">Bollywood Series</option>
+<option value="thai">Thai Series</option>
+<option value="anime">Anime Series</option>
+<option value="animated">Animated Series</option>
+<option value="cartoon">Cartoon Series</option>
+</select>
+</div>
+<div>
+<label for="series-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Title</label>
+<input type="text" id="series-title" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter series title">
+</div>
+<div>
+<label for="series-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+<textarea id="series-description" rows="4" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter series description"></textarea>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div>
+<label for="series-year" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Year</label>
+<input type="text" id="series-year" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter year range (e.g., 2020-2023)">
+</div>
+<div>
+<label for="series-rating" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Rating</label>
+<input type="number" id="series-rating" step="0.1" min="0" max="10" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter rating (0-10)">
+</div>
+</div>
+<div>
+<label for="series-poster" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Poster Link</label>
+<input type="text" id="series-poster" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter poster image URL">
+</div>
+<div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+<div class="flex justify-between items-center mb-4">
+<h3 class="text-lg font-semibold text-gray-900 dark:text-white">Seasons</h3>
+<button type="button" id="add-season-btn" class="text-primary hover:text-primary/80 text-sm font-medium">
+<i class="ri-add-line mr-1"></i> Add Season
+</button>
+</div>
+<div id="seasons-container" class="space-y-6">
+<div class="season-item border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-medium text-gray-900 dark:text-white">Season 1</h4>
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-season-btn">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Season Poster</label>
+<input type="text" class="season-poster w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter season poster URL">
+</div>
+<div class="episodes-container">
+<div class="flex justify-between items-center mb-2">
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Episodes</label>
+<button type="button" class="text-primary hover:text-primary/80 text-sm font-medium add-episode-btn">
+<i class="ri-add-line mr-1"></i> Add Episode
+</button>
+</div>
+<div class="episode-item border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
+<div class="flex justify-between items-center mb-3">
+<h5 class="text-sm font-medium text-gray-900 dark:text-white">Episode 1</h5>
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-episode-btn">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+<div class="space-y-3">
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+<input type="text" class="episode-title w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter episode title">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Thumbnail</label>
+<input type="text" class="episode-thumbnail w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter thumbnail URL">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Duration</label>
+<input type="text" class="episode-duration w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter duration (e.g., 45m)">
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Server Links</label>
+<button type="button" class="text-primary hover:text-primary/80 text-xs font-medium add-episode-server-btn">
+<i class="ri-add-line"></i> Add
+</button>
+</div>
+<div class="episode-servers space-y-2">
+<div class="flex items-center space-x-2">
+<input type="text" class="server-name w-1/3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8">
+<button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-button font-medium transition whitespace-nowrap">
+Add TV Series
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- Add Live TV Modal -->
+<div id="add-live-modal" class="modal fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-hidden">
+<div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-gray-700">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Add Live TV Channel</h2>
+<button id="close-add-live-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+<i class="ri-close-line ri-lg"></i>
+</button>
+</div>
+<div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 80px);">
+<form id="add-live-form">
+<div class="space-y-6">
+<div>
+<label for="live-country" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Country</label>
+<select id="live-country" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white pr-8">
+<option value="">Select Country</option>
+<option value="usa">United States</option>
+<option value="uk">United Kingdom</option>
+<option value="philippines">Philippines</option>
+<option value="japan">Japan</option>
+<option value="korea">South Korea</option>
+<option value="china">China</option>
+<option value="india">India</option>
+<option value="thailand">Thailand</option>
+<option value="global">Global</option>
+</select>
+</div>
+<div>
+<label for="live-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Category</label>
+<select id="live-category" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white pr-8">
+<option value="">Select Category</option>
+<option value="news">News Channels</option>
+<option value="sports">Sports Channels</option>
+<option value="movie">Movie Channels</option>
+<option value="educational">Educational Channels</option>
+<option value="cartoon">Cartoon Network</option>
+<option value="entertainment">Entertainment Channels</option>
+<option value="shop">Shop Channels</option>
+<option value="religion">Religion Channels</option>
+</select>
+</div>
+<div>
+<label for="live-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Channel Name</label>
+<input type="text" id="live-title" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter channel name">
+</div>
+<div>
+<label for="live-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Description</label>
+<textarea id="live-description" rows="4" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter channel description"></textarea>
+</div>
+<div>
+<label for="live-poster" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Logo/Poster Link</label>
+<input type="text" id="live-poster" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter logo/poster image URL">
+</div>
+<div>
+<label for="live-thumbnail" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Thumbnail Link</label>
+<input type="text" id="live-thumbnail" class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter thumbnail image URL">
+</div>
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Stream Links</label>
+<button type="button" id="add-stream-btn" class="text-primary hover:text-primary/80 text-sm font-medium">
+<i class="ri-add-line mr-1"></i> Add More
+</button>
+</div>
+<div id="stream-container" class="space-y-3">
+<div class="flex items-center space-x-3">
+<input type="text" class="stream-quality w-1/3 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Quality (e.g., HD, SD)">
+<input type="text" class="stream-link flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter stream URL">
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8">
+<button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-button font-medium transition whitespace-nowrap">
+Add Live TV Channel
+</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+<!-- Scripts -->
+<script id="theme-script">
+document.addEventListener('DOMContentLoaded', function() {
+// Check for user preference
+const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const body = document.body;
+// Set initial theme based on user preference
+if (prefersDarkMode) {
+body.classList.remove('theme-light');
+body.classList.add('theme-dark');
+}
+// Theme toggle functionality
+const themeToggle = document.getElementById('theme-toggle');
+themeToggle.addEventListener('click', function() {
+if (body.classList.contains('theme-light')) {
+body.classList.remove('theme-light');
+body.classList.add('theme-dark');
+} else {
+body.classList.remove('theme-dark');
+body.classList.add('theme-light');
+}
+});
+});
+</script>
+<script id="carousel-script">
+document.addEventListener('DOMContentLoaded', function() {
+const carousel = document.getElementById('carousel');
+const items = carousel.querySelectorAll('.carousel-item');
+const dots = document.querySelectorAll('.carousel-dot');
+const prevBtn = document.getElementById('carousel-prev');
+const nextBtn = document.getElementById('carousel-next');
+let currentIndex = 0;
+const totalItems = items.length;
+// Function to update carousel position
+function updateCarousel() {
+carousel.scrollTo({
+left: items[currentIndex].offsetLeft,
+behavior: 'smooth'
+});
+// Update dots
+dots.forEach(dot => dot.classList.remove('active', 'bg-white', 'bg-white/50'));
+dots[currentIndex].classList.add('active', 'bg-white');
+dots.forEach((dot, index) => {
+if (index !== currentIndex) {
+dot.classList.add('bg-white/50');
+}
+});
+}
+// Event listeners for navigation buttons
+prevBtn.addEventListener('click', function() {
+currentIndex = (currentIndex - 1 + totalItems) % totalItems;
+updateCarousel();
+});
+nextBtn.addEventListener('click', function() {
+currentIndex = (currentIndex + 1) % totalItems;
+updateCarousel();
+});
+// Event listeners for dots
+dots.forEach((dot, index) => {
+dot.addEventListener('click', function() {
+currentIndex = index;
+updateCarousel();
+});
+});
+// Auto-advance carousel
+let carouselInterval = setInterval(function() {
+currentIndex = (currentIndex + 1) % totalItems;
+updateCarousel();
+}, 5000);
+// Pause auto-advance on hover
+carousel.addEventListener('mouseenter', function() {
+clearInterval(carouselInterval);
+});
+carousel.addEventListener('mouseleave', function() {
+carouselInterval = setInterval(function() {
+currentIndex = (currentIndex + 1) % totalItems;
+updateCarousel();
+}, 5000);
+});
+// Initialize carousel
+updateCarousel();
+});
+</script>
+<script id="view-toggle-script">
+document.addEventListener('DOMContentLoaded', function() {
+const gridViewBtn = document.getElementById('grid-view-btn');
+const listViewBtn = document.getElementById('list-view-btn');
+const contentContainer = document.getElementById('content-container');
+gridViewBtn.addEventListener('click', function() {
+contentContainer.classList.remove('list-view');
+contentContainer.classList.add('grid-view');
+gridViewBtn.classList.add('bg-primary', 'text-white');
+gridViewBtn.classList.remove('text-gray-500', 'dark:text-gray-400', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+listViewBtn.classList.remove('bg-primary', 'text-white');
+listViewBtn.classList.add('text-gray-500', 'dark:text-gray-400', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+});
+listViewBtn.addEventListener('click', function() {
+contentContainer.classList.remove('grid-view');
+contentContainer.classList.add('list-view');
+listViewBtn.classList.add('bg-primary', 'text-white');
+listViewBtn.classList.remove('text-gray-500', 'dark:text-gray-400', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+gridViewBtn.classList.remove('bg-primary', 'text-white');
+gridViewBtn.classList.add('text-gray-500', 'dark:text-gray-400', 'hover:bg-gray-200', 'dark:hover:bg-gray-700');
+// Convert grid items to list items
+const contentItems = document.querySelectorAll('.content-item');
+contentItems.forEach(item => {
+if (!item.classList.contains('list-formatted')) {
+const img = item.querySelector('img');
+const title = item.querySelector('h3').textContent;
+const info = item.querySelector('.flex.items-center.text-gray-300').innerHTML;
+const playBtn = item.querySelector('button').outerHTML;
+item.classList.add('list-formatted');
+item.innerHTML = `
+<div class="flex bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+<img src="${img.src}" alt="${img.alt}" class="w-[120px] h-[180px] object-cover">
+<div class="flex flex-col justify-between p-4 flex-1">
+<div>
+<h3 class="font-bold text-gray-900 dark:text-white">${title}</h3>
+<div class="flex items-center text-gray-500 dark:text-gray-400 text-sm mt-1">
+${info}
+</div>
+</div>
+<div class="flex justify-end">
+${playBtn}
+</div>
+</div>
+</div>
+`;
+}
+});
+});
+});
+</script>
+<script id="search-script">
+document.addEventListener('DOMContentLoaded', function() {
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+// Sample search data
+const searchData = [
+{ title: 'The Batman', type: 'movie', category: 'Hollywood', year: '2022', image: 'https://readdy.ai/api/search-image?query=The%20Batman%20movie%20poster%20thumbnail%2C%20professional%20movie%20poster%20design%2C%20high%20quality&width=100&height=100&seq=33&orientation=squarish' },
+{ title: 'Parasite', type: 'movie', category: 'Korean', year: '2019', image: 'https://readdy.ai/api/search-image?query=Parasite%20movie%20poster%20thumbnail%2C%20professional%20movie%20poster%20design%2C%20high%20quality&width=100&height=100&seq=34&orientation=squarish' },
+{ title: 'Squid Game', type: 'series', category: 'K-Drama', year: '2021', image: 'https://readdy.ai/api/search-image?query=Squid%20Game%20TV%20series%20poster%20thumbnail%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=100&height=100&seq=35&orientation=squarish' },
+{ title: 'Stranger Things', type: 'series', category: 'Hollywood Series', year: '2016', image: 'https://readdy.ai/api/search-image?query=Stranger%20Things%20TV%20series%20poster%20thumbnail%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=100&height=100&seq=36&orientation=squarish' },
+{ title: 'CNN', type: 'live', category: 'News', country: 'USA', image: 'https://readdy.ai/api/search-image?query=CNN%20news%20channel%20logo%20thumbnail%2C%20professional%20TV%20channel%20design%2C%20high%20quality&width=100&height=100&seq=37&orientation=squarish' }
+];
+// Search functionality
+searchInput.addEventListener('input', function() {
+const query = this.value.toLowerCase().trim();
+if (query.length < 2) {
+searchResults.classList.add('hidden');
+return;
+}
+// Filter results
+const filteredResults = searchData.filter(item =>
+item.title.toLowerCase().includes(query) ||
+item.category.toLowerCase().includes(query)
+);
+// Display results
+if (filteredResults.length > 0) {
+searchResults.innerHTML = '';
+filteredResults.forEach(result => {
+const resultItem = document.createElement('div');
+resultItem.className = 'flex items-center p-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer';
+let typeLabel = '';
+if (result.type === 'movie') {
+typeLabel = `<span class="px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded-full">Movie</span>`;
+} else if (result.type === 'series') {
+typeLabel = `<span class="px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full">Series</span>`;
+} else if (result.type === 'live') {
+typeLabel = `<span class="px-2 py-1 text-xs bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-full">Live</span>`;
+}
+resultItem.innerHTML = `
+<img src="${result.image}" alt="${result.title}" class="w-12 h-12 rounded object-cover">
+<div class="ml-3 flex-1">
+<div class="flex justify-between items-start">
+<h4 class="font-medium text-gray-900 dark:text-white">${result.title}</h4>
+${typeLabel}
+</div>
+<p class="text-sm text-gray-500 dark:text-gray-400">${result.category} • ${result.year || result.country}</p>
+</div>
+`;
+resultItem.addEventListener('click', function() {
+// Handle click based on content type
+if (result.type === 'series') {
+// Update season modal content before opening
+const seasonModalTitle = document.getElementById('season-modal-title');
+seasonModalTitle.textContent = result.title;
+// Show season modal
+const seasonModal = document.getElementById('season-modal');
+seasonModal.classList.add('active');
+} else if (result.type === 'movie' || result.type === 'live') {
+openVideoPlayer(result.title);
+}
+searchResults.classList.add('hidden');
+searchInput.value = '';
+});
+searchResults.appendChild(resultItem);
+});
+searchResults.classList.remove('hidden');
+} else {
+searchResults.innerHTML = `
+<div class="p-4 text-center text-gray-500 dark:text-gray-400">
+No results found for "${query}"
+</div>
+`;
+searchResults.classList.remove('hidden');
+}
+});
+// Hide search results when clicking outside
+document.addEventListener('click', function(event) {
+if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
+searchResults.classList.add('hidden');
+}
+});
+});
+</script>
+<script id="modal-script">
+document.addEventListener('DOMContentLoaded', function() {
+// Initialize episode addition functionality for existing seasons
+function initializeExistingSeasons() {
+const existingAddEpisodeBtns = document.querySelectorAll('.add-episode-btn');
+existingAddEpisodeBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const episodesContainer = this.closest('.episodes-container');
+const episodeCount = episodesContainer.querySelectorAll('.episode-item').length + 1;
+const episodeItem = document.createElement('div');
+episodeItem.className = 'episode-item border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3';
+episodeItem.innerHTML = `
+<div class="flex justify-between items-center mb-3">
+<h5 class="text-sm font-medium text-gray-900 dark:text-white">Episode ${episodeCount}</h5>
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-episode-btn">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+<div class="space-y-3">
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+<input type="text" class="episode-title w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter episode title">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Thumbnail</label>
+<input type="text" class="episode-thumbnail w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter thumbnail URL">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Duration</label>
+<input type="text" class="episode-duration w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter duration (e.g., 45m)">
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Server Links</label>
+<button type="button" class="text-primary hover:text-primary/80 text-xs font-medium add-episode-server-btn">
+<i class="ri-add-line"></i> Add
+</button>
+</div>
+<div class="episode-servers space-y-2">
+<div class="flex items-center space-x-2">
+<input type="text" class="server-name w-1/3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+`;
+episodesContainer.appendChild(episodeItem);
+// Add event listeners to the new episode's buttons
+const removeEpisodeBtn = episodeItem.querySelector('.remove-episode-btn');
+removeEpisodeBtn.addEventListener('click', function() {
+episodesContainer.removeChild(episodeItem);
+});
+const addEpisodeServerBtn = episodeItem.querySelector('.add-episode-server-btn');
+addEpisodeServerBtn.addEventListener('click', function() {
+const episodeServers = this.closest('div').querySelector('.episode-servers');
+const serverItem = document.createElement('div');
+serverItem.className = 'flex items-center space-x-2';
+serverItem.innerHTML = `
+<input type="text" class="server-name w-1/3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+`;
+episodeServers.appendChild(serverItem);
+const removeServerBtn = serverItem.querySelector('.remove-server-btn');
+removeServerBtn.addEventListener('click', function() {
+episodeServers.removeChild(serverItem);
+});
+});
+});
+});
+}
+// Call the initialization function when the page loads
+initializeExistingSeasons();
+// Login Modal
+const profileBtn = document.getElementById('profile-btn');
+const loginModal = document.getElementById('login-modal');
+const closeLoginModal = document.getElementById('close-login-modal');
+const loginForm = document.getElementById('login-form');
+profileBtn.addEventListener('click', function() {
+loginModal.classList.add('active');
+});
+closeLoginModal.addEventListener('click', function() {
+loginModal.classList.remove('active');
+});
+loginForm.addEventListener('submit', function(e) {
+e.preventDefault();
+const username = document.getElementById('username').value;
+const password = document.getElementById('password').value;
+if (username === 'LPT' && password === 'TAMBAY') {
+loginModal.classList.remove('active');
+openAdminPanel();
+} else {
+// Show error message
+const existingError = loginForm.querySelector('.error-message');
+if (existingError) {
+existingError.remove();
+}
+const errorMessage = document.createElement('div');
+errorMessage.className = 'error-message text-red-500 text-sm mt-4';
+errorMessage.textContent = 'Incorrect username or password';
+loginForm.appendChild(errorMessage);
+}
+});
+// Video Player Modal
+const videoPlayerModal = document.getElementById('video-player-modal');
+const closeVideoModal = document.getElementById('close-video-modal');
+const videoPlayer = document.getElementById('video-player');
+closeVideoModal.addEventListener('click', function() {
+videoPlayerModal.classList.remove('active');
+videoPlayer.pause();
+videoPlayer.src = '';
+});
+// Season Modal
+const seasonModal = document.getElementById('season-modal');
+const closeSeasonModal = document.getElementById('close-season-modal');
+const seasonItems = document.querySelectorAll('.season-item');
+closeSeasonModal.addEventListener('click', function() {
+seasonModal.classList.remove('active');
+});
+seasonItems.forEach(item => {
+item.addEventListener('click', function() {
+const seasonNumber = this.getAttribute('data-season');
+openEpisodeModal(`Stranger Things: Season ${seasonNumber}`);
+seasonModal.classList.remove('active');
+});
+});
+// Episode Modal
+const episodeModal = document.getElementById('episode-modal');
+const closeEpisodeModal = document.getElementById('close-episode-modal');
+const episodeItems = document.querySelectorAll('.episode-item');
+closeEpisodeModal.addEventListener('click', function() {
+episodeModal.classList.remove('active');
+});
+episodeItems.forEach(item => {
+item.addEventListener('click', function() {
+const episodeNumber = this.getAttribute('data-episode');
+openVideoPlayer(`Stranger Things S1E${episodeNumber}`);
+episodeModal.classList.remove('active');
+});
+});
+// Admin Panel Modal
+const adminPanelModal = document.getElementById('admin-panel-modal');
+const closeAdminPanel = document.getElementById('close-admin-panel');
+const adminNavItems = document.querySelectorAll('.admin-nav-item');
+const adminSections = document.querySelectorAll('.admin-section');
+closeAdminPanel.addEventListener('click', function() {
+adminPanelModal.classList.remove('active');
+});
+adminNavItems.forEach(item => {
+item.addEventListener('click', function() {
+const sectionId = this.getAttribute('data-section');
+// Update active nav item
+adminNavItems.forEach(navItem => {
+navItem.classList.remove('text-primary', 'bg-blue-50', 'dark:bg-blue-900/20');
+navItem.classList.add('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+});
+this.classList.remove('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-800');
+this.classList.add('text-primary', 'bg-blue-50', 'dark:bg-blue-900/20');
+// Show selected section
+adminSections.forEach(section => {
+section.classList.add('hidden');
+});
+document.getElementById(`${sectionId}-section`).classList.remove('hidden');
+});
+});
+// Add Movie Modal
+const addMovieBtn = document.getElementById('add-movie-btn');
+const addMovieModal = document.getElementById('add-movie-modal');
+const closeAddMovieModal = document.getElementById('close-add-movie-modal');
+const addSubtitleBtn = document.getElementById('add-subtitle-btn');
+const subtitleContainer = document.getElementById('subtitle-container');
+const addServerBtn = document.getElementById('add-server-btn');
+const serverContainer = document.getElementById('server-container');
+const addMovieForm = document.getElementById('add-movie-form');
+// Function to update monitoring counts
+function updateMonitoringCounts() {
+const movieCount = document.querySelectorAll('.movie-item').length;
+const seriesCount = document.querySelectorAll('.series-item').length;
+const liveCount = document.querySelectorAll('.live-item').length;
+// Update dashboard numbers
+document.querySelector('[data-section="movies"] + div p').textContent = movieCount;
+document.querySelector('[data-section="series"] + div p').textContent = seriesCount;
+document.querySelector('[data-section="live"] + div p').textContent = liveCount;
+// Update charts
+initAdminCharts();
+}
+// Handle movie form submission
+addMovieForm?.addEventListener('submit', function(e) {
+e.preventDefault();
+const title = document.getElementById('movie-title').value;
+const type = document.getElementById('movie-type').value;
+const year = document.getElementById('movie-year').value;
+const rating = document.getElementById('movie-rating').value;
+const poster = document.getElementById('movie-poster').value || `https://readdy.ai/api/search-image?query=$%7Btitle%7D%20movie%20poster%20with%20dark%20moody%20atmosphere%2C%20professional%20movie%20poster%20design%2C%20high%20quality&width=300&height=450&seq=${Math.random()}&orientation=portrait`;
+// Create new movie item
+const movieItem = document.createElement('div');
+movieItem.className = 'content-item movie-item';
+movieItem.setAttribute('data-type', 'movie');
+movieItem.setAttribute('data-category', type);
+movieItem.innerHTML = `
+<div class="relative group overflow-hidden rounded-lg shadow-md transition-transform hover:scale-105">
+<img src="${poster}" alt="${title}" class="w-full h-[270px] object-cover">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+<h3 class="text-white font-bold">${title}</h3>
+<div class="flex items-center text-gray-300 text-sm mt-1">
+<span>${year}</span>
+<span class="mx-2">•</span>
+<span>${rating}</span>
+</div>
+<button class="mt-3 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium text-sm transition whitespace-nowrap">
+<i class="ri-play-fill mr-1"></i> Play
+</button>
+</div>
+</div>
+`;
+// Add click event to new movie item
+movieItem.addEventListener('click', function() {
+openVideoPlayer(title);
+});
+// Add to content container
+const contentContainer = document.getElementById('content-container');
+contentContainer.insertBefore(movieItem, contentContainer.firstChild);
+// Update monitoring counts
+updateMonitoringCounts();
+// Reset form and close modal
+addMovieForm.reset();
+addMovieModal.classList.remove('active');
+});
+addMovieBtn?.addEventListener('click', function() {
+addMovieModal.classList.add('active');
+});
+closeAddMovieModal?.addEventListener('click', function() {
+addMovieModal.classList.remove('active');
+});
+addSubtitleBtn?.addEventListener('click', function() {
+const subtitleItem = document.createElement('div');
+subtitleItem.className = 'flex items-center space-x-3';
+subtitleItem.innerHTML = `
+<select class="subtitle-language w-1/3 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white pr-8">
+<option value="en">English</option>
+<option value="es">Spanish</option>
+<option value="fr">French</option>
+<option value="de">German</option>
+<option value="jp">Japanese</option>
+<option value="ko">Korean</option>
+</select>
+<input type="text" class="subtitle-link flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter subtitle URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-subtitle-btn">
+<i class="ri-close-line"></i>
+</button>
+`;
+subtitleContainer.appendChild(subtitleItem);
+// Add event listener to remove button
+const removeBtn = subtitleItem.querySelector('.remove-subtitle-btn');
+removeBtn.addEventListener('click', function() {
+subtitleContainer.removeChild(subtitleItem);
+});
+});
+addServerBtn?.addEventListener('click', function() {
+const serverItem = document.createElement('div');
+serverItem.className = 'flex items-center space-x-3';
+serverItem.innerHTML = `
+<input type="text" class="server-name w-1/3 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+`;
+serverContainer.appendChild(serverItem);
+// Add event listener to remove button
+const removeBtn = serverItem.querySelector('.remove-server-btn');
+removeBtn.addEventListener('click', function() {
+serverContainer.removeChild(serverItem);
+});
+});
+// Add TV Series Modal
+const addSeriesBtn = document.getElementById('add-series-btn');
+const addSeriesModal = document.getElementById('add-series-modal');
+const closeAddSeriesModal = document.getElementById('close-add-series-modal');
+const addSeasonBtn = document.getElementById('add-season-btn');
+const seasonsContainer = document.getElementById('seasons-container');
+const addSeriesForm = document.getElementById('add-series-form');
+// Handle series form submission
+addSeriesForm?.addEventListener('submit', function(e) {
+e.preventDefault();
+const title = document.getElementById('series-title').value;
+const type = document.getElementById('series-type').value;
+const year = document.getElementById('series-year').value;
+const rating = document.getElementById('series-rating').value;
+const poster = document.getElementById('series-poster').value || `https://readdy.ai/api/search-image?query=$%7Btitle%7D%20TV%20series%20poster%20with%20dramatic%20lighting%2C%20professional%20TV%20show%20poster%20design%2C%20high%20quality&width=300&height=450&seq=${Math.random()}&orientation=portrait`;
+// Create new series item
+const seriesItem = document.createElement('div');
+seriesItem.className = 'content-item series-item';
+seriesItem.setAttribute('data-type', 'series');
+seriesItem.setAttribute('data-category', type);
+seriesItem.innerHTML = `
+<div class="relative group overflow-hidden rounded-lg shadow-md transition-transform hover:scale-105">
+<img src="${poster}" alt="${title}" class="w-full h-[270px] object-cover">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+<h3 class="text-white font-bold">${title}</h3>
+<div class="flex items-center text-gray-300 text-sm mt-1">
+<span>${year}</span>
+<span class="mx-2">•</span>
+<span>${rating}</span>
+</div>
+<button class="mt-3 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium text-sm transition whitespace-nowrap">
+<i class="ri-play-fill mr-1"></i> Play
+</button>
+</div>
+</div>
+`;
+// Add click event to new series item
+seriesItem.addEventListener('click', function() {
+openSeasonModal(title);
+});
+// Add to content container
+const contentContainer = document.getElementById('content-container');
+contentContainer.insertBefore(seriesItem, contentContainer.firstChild);
+// Update monitoring counts
+updateMonitoringCounts();
+// Reset form and close modal
+addSeriesForm.reset();
+addSeriesModal.classList.remove('active');
+});
+addSeriesBtn?.addEventListener('click', function() {
+addSeriesModal.classList.add('active');
+});
+closeAddSeriesModal?.addEventListener('click', function() {
+addSeriesModal.classList.remove('active');
+});
+addSeasonBtn?.addEventListener('click', function() {
+const seasonCount = seasonsContainer.querySelectorAll('.season-item').length + 1;
+const seasonItem = document.createElement('div');
+seasonItem.className = 'season-item border border-gray-200 dark:border-gray-700 rounded-lg p-4';
+seasonItem.innerHTML = `
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-medium text-gray-900 dark:text-white">Season ${seasonCount}</h4>
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-season-btn">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Season Poster</label>
+<input type="text" class="season-poster w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter season poster URL">
+</div>
+<div class="episodes-container">
+<div class="flex justify-between items-center mb-2">
+<label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Episodes</label>
+<button type="button" class="text-primary hover:text-primary/80 text-sm font-medium add-episode-btn">
+<i class="ri-add-line mr-1"></i> Add Episode
+</button>
+</div>
+<div class="episode-item border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3">
+<div class="flex justify-between items-center mb-3">
+<h5 class="text-sm font-medium text-gray-900 dark:text-white">Episode 1</h5>
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-episode-btn">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+<div class="space-y-3">
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+<input type="text" class="episode-title w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter episode title">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Thumbnail</label>
+<input type="text" class="episode-thumbnail w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter thumbnail URL">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Duration</label>
+<input type="text" class="episode-duration w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter duration (e.g., 45m)">
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Server Links</label>
+<button type="button" class="text-primary hover:text-primary/80 text-xs font-medium add-episode-server-btn">
+<i class="ri-add-line"></i> Add
+</button>
+</div>
+<div class="episode-servers space-y-2">
+<div class="flex items-center space-x-2">
+<input type="text" class="server-name w-1/3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+`;
+seasonsContainer.appendChild(seasonItem);
+// Add event listeners to the new season item
+const removeSeasonBtn = seasonItem.querySelector('.remove-season-btn');
+removeSeasonBtn.addEventListener('click', function() {
+seasonsContainer.removeChild(seasonItem);
+});
+const addEpisodeBtn = seasonItem.querySelector('.add-episode-btn');
+addEpisodeBtn.addEventListener('click', function() {
+const episodesContainer = this.closest('.episodes-container');
+const episodeCount = episodesContainer.querySelectorAll('.episode-item').length + 1;
+const episodeItem = document.createElement('div');
+episodeItem.className = 'episode-item border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-3';
+episodeItem.innerHTML = `
+<div class="flex justify-between items-center mb-3">
+<h5 class="text-sm font-medium text-gray-900 dark:text-white">Episode ${episodeCount}</h5>
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-episode-btn">
+<i class="ri-delete-bin-line"></i>
+</button>
+</div>
+<div class="space-y-3">
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Title</label>
+<input type="text" class="episode-title w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter episode title">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Thumbnail</label>
+<input type="text" class="episode-thumbnail w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter thumbnail URL">
+</div>
+<div>
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Duration</label>
+<input type="text" class="episode-duration w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter duration (e.g., 45m)">
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Server Links</label>
+<button type="button" class="text-primary hover:text-primary/80 text-xs font-medium add-episode-server-btn">
+<i class="ri-add-line"></i> Add
+</button>
+</div>
+<div class="episode-servers space-y-2">
+<div class="flex items-center space-x-2">
+<input type="text" class="server-name w-1/3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+`;
+episodesContainer.appendChild(episodeItem);
+// Add event listeners to the new episode item
+const removeEpisodeBtn = episodeItem.querySelector('.remove-episode-btn');
+removeEpisodeBtn.addEventListener('click', function() {
+episodesContainer.removeChild(episodeItem);
+});
+const addEpisodeServerBtn = episodeItem.querySelector('.add-episode-server-btn');
+addEpisodeServerBtn.addEventListener('click', function() {
+const episodeServers = this.closest('div').querySelector('.episode-servers');
+const serverItem = document.createElement('div');
+serverItem.className = 'flex items-center space-x-2';
+serverItem.innerHTML = `
+<input type="text" class="server-name w-1/3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+`;
+episodeServers.appendChild(serverItem);
+// Add event listener to remove button
+const removeServerBtn = serverItem.querySelector('.remove-server-btn');
+removeServerBtn.addEventListener('click', function() {
+episodeServers.removeChild(serverItem);
+});
+});
+});
+// Add event listeners to existing episode server buttons
+const addEpisodeServerBtns = seasonItem.querySelectorAll('.add-episode-server-btn');
+addEpisodeServerBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const episodeServers = this.closest('div').querySelector('.episode-servers');
+const serverItem = document.createElement('div');
+serverItem.className = 'flex items-center space-x-2';
+serverItem.innerHTML = `
+<input type="text" class="server-name w-1/3 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Server name">
+<input type="text" class="server-link flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white text-sm" placeholder="Enter video URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-server-btn">
+<i class="ri-close-line"></i>
+</button>
+`;
+episodeServers.appendChild(serverItem);
+// Add event listener to remove button
+const removeServerBtn = serverItem.querySelector('.remove-server-btn');
+removeServerBtn.addEventListener('click', function() {
+episodeServers.removeChild(serverItem);
+});
+});
+});
+// Add event listeners to existing episode remove buttons
+const removeEpisodeBtns = seasonItem.querySelectorAll('.remove-episode-btn');
+removeEpisodeBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const episodeItem = this.closest('.episode-item');
+const episodesContainer = episodeItem.parentElement;
+episodesContainer.removeChild(episodeItem);
+});
+});
+// Add event listeners to existing server remove buttons
+const removeServerBtns = seasonItem.querySelectorAll('.remove-server-btn');
+removeServerBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const serverItem = this.closest('.flex.items-center.space-x-2');
+const episodeServers = serverItem.parentElement;
+episodeServers.removeChild(serverItem);
+});
+});
+});
+// Add Live TV Modal
+const addLiveBtn = document.getElementById('add-live-btn');
+const addLiveModal = document.getElementById('add-live-modal');
+const closeAddLiveModal = document.getElementById('close-add-live-modal');
+const addStreamBtn = document.getElementById('add-stream-btn');
+const streamContainer = document.getElementById('stream-container');
+const addLiveForm = document.getElementById('add-live-form');
+// Handle live TV form submission
+addLiveForm?.addEventListener('submit', function(e) {
+e.preventDefault();
+const title = document.getElementById('live-title').value;
+const category = document.getElementById('live-category').value;
+const country = document.getElementById('live-country').value;
+const poster = document.getElementById('live-poster').value || `https://readdy.ai/api/search-image?query=$%7Btitle%7D%20TV%20channel%20logo%20with%20broadcast%20studio%20background%2C%20professional%20TV%20channel%20design%2C%20high%20quality&width=300&height=450&seq=${Math.random()}&orientation=portrait`;
+// Create new live TV item
+const liveItem = document.createElement('div');
+liveItem.className = 'content-item live-item';
+liveItem.setAttribute('data-type', 'live');
+liveItem.setAttribute('data-category', category);
+liveItem.setAttribute('data-country', country);
+liveItem.innerHTML = `
+<div class="relative group overflow-hidden rounded-lg shadow-md transition-transform hover:scale-105">
+<img src="${poster}" alt="${title}" class="w-full h-[270px] object-cover">
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+<h3 class="text-white font-bold">${title}</h3>
+<div class="flex items-center text-gray-300 text-sm mt-1">
+<span>${category}</span>
+<span class="mx-2">•</span>
+<span>${country}</span>
+</div>
+<button class="mt-3 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium text-sm transition whitespace-nowrap">
+<i class="ri-live-fill mr-1"></i> Watch Live
+</button>
+</div>
+</div>
+`;
+// Add click event to new live TV item
+liveItem.addEventListener('click', function() {
+openVideoPlayer(title);
+});
+// Add to content container
+const contentContainer = document.getElementById('content-container');
+contentContainer.insertBefore(liveItem, contentContainer.firstChild);
+// Update monitoring counts
+updateMonitoringCounts();
+// Reset form and close modal
+addLiveForm.reset();
+addLiveModal.classList.remove('active');
+});
+addLiveBtn?.addEventListener('click', function() {
+addLiveModal.classList.add('active');
+});
+closeAddLiveModal?.addEventListener('click', function() {
+addLiveModal.classList.remove('active');
+});
+addStreamBtn?.addEventListener('click', function() {
+const streamItem = document.createElement('div');
+streamItem.className = 'flex items-center space-x-3';
+streamItem.innerHTML = `
+<input type="text" class="stream-quality w-1/3 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Quality (e.g., HD, SD)">
+<input type="text" class="stream-link flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:text-white" placeholder="Enter stream URL">
+<button type="button" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 remove-stream-btn">
+<i class="ri-close-line"></i>
+</button>
+`;
+streamContainer.appendChild(streamItem);
+// Add event listener to remove button
+const removeBtn = streamItem.querySelector('.remove-stream-btn');
+removeBtn.addEventListener('click', function() {
+streamContainer.removeChild(streamItem);
+});
+});
+// Video Player Controls
+const serverSelector = document.getElementById('server-selector');
+const serverOptions = document.getElementById('server-options');
+const serverOptionBtns = document.querySelectorAll('.server-option');
+const subtitleSelector = document.getElementById('subtitle-selector');
+const subtitleOptions = document.getElementById('subtitle-options');
+const subtitleOptionBtns = document.querySelectorAll('.subtitle-option');
+const fitScreenBtn = document.getElementById('fit-screen');
+const cropScreenBtn = document.getElementById('crop-screen');
+const normalScreenBtn = document.getElementById('normal-screen');
+serverSelector?.addEventListener('click', function() {
+serverOptions.classList.toggle('hidden');
+});
+serverOptionBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const serverNumber = this.getAttribute('data-server');
+serverSelector.querySelector('span').textContent = `Server ${serverNumber}`;
+serverOptions.classList.add('hidden');
+// Simulate server change
+videoPlayer.src = `#server${serverNumber}`;
+videoPlayer.load();
+videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+});
+});
+subtitleSelector?.addEventListener('click', function() {
+subtitleOptions.classList.toggle('hidden');
+});
+subtitleOptionBtns.forEach(btn => {
+btn.addEventListener('click', function() {
+const subtitleLang = this.getAttribute('data-subtitle');
+const subtitleText = this.textContent;
+subtitleSelector.querySelector('span').textContent = subtitleText;
+subtitleOptions.classList.add('hidden');
+// Simulate subtitle change
+console.log(`Subtitle changed to ${subtitleLang}`);
+});
+});
+fitScreenBtn?.addEventListener('click', function() {
+videoPlayer.style.objectFit = 'contain';
+});
+cropScreenBtn?.addEventListener('click', function() {
+videoPlayer.style.objectFit = 'cover';
+});
+normalScreenBtn?.addEventListener('click', function() {
+videoPlayer.style.objectFit = 'fill';
+});
+// Hide dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+if (serverSelector && !serverSelector.contains(event.target) && !serverOptions.contains(event.target)) {
+serverOptions.classList.add('hidden');
+}
+if (subtitleSelector && !subtitleSelector.contains(event.target) && !subtitleOptions.contains(event.target)) {
+subtitleOptions.classList.add('hidden');
+}
+});
+// Custom checkbox functionality
+const customCheckboxes = document.querySelectorAll('.custom-checkbox');
+customCheckboxes.forEach(checkbox => {
+checkbox.addEventListener('click', function() {
+const input = this.previousElementSibling;
+const icon = this.querySelector('i');
+if (input.type === 'checkbox') {
+input.checked = !input.checked;
+if (input.checked) {
+this.classList.add('active');
+this.style.backgroundColor = '#3b82f6';
+this.style.borderColor = '#3b82f6';
+icon.classList.remove('hidden');
+} else {
+this.classList.remove('active');
+this.style.backgroundColor = '';
+this.style.borderColor = '';
+icon.classList.add('hidden');
+}
+} else if (input.type === 'radio') {
+input.checked = true;
+// Uncheck all other radio buttons in the same group
+const name = input.name;
+const radioButtons = document.querySelectorAll(`input[type="radio"][name="${name}"]`);
+radioButtons.forEach(radio => {
+const customRadio = radio.nextElementSibling;
+const radioIcon = customRadio.querySelector('div');
+if (radio === input) {
+customRadio.classList.add('active');
+radioIcon.style.display = 'block';
+} else {
+customRadio.classList.remove('active');
+radioIcon.style.display = 'none';
+}
+});
+}
+});
+});
+// Initialize admin panel charts
+function initAdminCharts() {
+// Content Distribution Chart
+const contentDistributionChart = document.getElementById('content-distribution-chart');
+if (contentDistributionChart) {
+const chart = echarts.init(contentDistributionChart);
+const option = {
+animation: false,
+tooltip: {
+trigger: 'item',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#e5e7eb',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+top: '5%',
+left: 'center',
+textStyle: {
+color: '#1f2937'
+}
+},
+series: [
+{
+name: 'Content Distribution',
+type: 'pie',
+radius: ['40%', '70%'],
+avoidLabelOverlap: false,
+itemStyle: {
+borderRadius: 10,
+borderColor: '#fff',
+borderWidth: 2
+},
+label: {
+show: false,
+position: 'center'
+},
+emphasis: {
+label: {
+show: true,
+fontSize: '18',
+fontWeight: 'bold'
+}
+},
+labelLine: {
+show: false
+},
+data: [
+{ value: 3, name: 'Movies', itemStyle: { color: 'rgba(87, 181, 231, 1)' } },
+{ value: 3, name: 'TV Series', itemStyle: { color: 'rgba(141, 211, 199, 1)' } },
+{ value: 3, name: 'Live TV', itemStyle: { color: 'rgba(251, 191, 114, 1)' } }
+]
+}
+]
+};
+chart.setOption(option);
+// Resize chart on window resize
+window.addEventListener('resize', function() {
+chart.resize();
+});
+}
+// Content Timeline Chart
+const contentTimelineChart = document.getElementById('content-timeline-chart');
+if (contentTimelineChart) {
+const chart = echarts.init(contentTimelineChart);
+const option = {
+animation: false,
+tooltip: {
+trigger: 'axis',
+backgroundColor: 'rgba(255, 255, 255, 0.8)',
+borderColor: '#e5e7eb',
+borderWidth: 1,
+textStyle: {
+color: '#1f2937'
+}
+},
+legend: {
+data: ['Movies', 'TV Series', 'Live TV'],
+textStyle: {
+color: '#1f2937'
+}
+},
+grid: {
+left: '3%',
+right: '4%',
+bottom: '3%',
+containLabel: true
+},
+xAxis: {
+type: 'category',
+boundaryGap: false,
+data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+axisLine: {
+lineStyle: {
+color: '#e5e7eb'
+}
+},
+axisLabel: {
+color: '#1f2937'
+}
+},
+yAxis: {
+type: 'value',
+axisLine: {
+lineStyle: {
+color: '#e5e7eb'
+}
+},
+axisLabel: {
+color: '#1f2937'
+},
+splitLine: {
+lineStyle: {
+color: '#e5e7eb'
+}
+}
+},
+series: [
+{
+name: 'Movies',
+type: 'line',
+stack: 'Total',
+smooth: true,
+lineStyle: {
+width: 3,
+color: 'rgba(87, 181, 231, 1)'
+},
+areaStyle: {
+color: {
+type: 'linear',
+x: 0,
+y: 0,
+x2: 0,
+y2: 1,
+colorStops: [{
+offset: 0, color: 'rgba(87, 181, 231, 0.3)'
+}, {
+offset: 1, color: 'rgba(87, 181, 231, 0.1)'
+}]
+}
+},
+emphasis: {
+focus: 'series'
+},
+data: [1, 1, 2, 2, 3, 3]
+},
+{
+name: 'TV Series',
+type: 'line',
+stack: 'Total',
+smooth: true,
+lineStyle: {
+width: 3,
+color: 'rgba(141, 211, 199, 1)'
+},
+areaStyle: {
+color: {
+type: 'linear',
+x: 0,
+y: 0,
+x2: 0,
+y2: 1,
+colorStops: [{
+offset: 0, color: 'rgba(141, 211, 199, 0.3)'
+}, {
+offset: 1, color: 'rgba(141, 211, 199, 0.1)'
+}]
+}
+},
+emphasis: {
+focus: 'series'
+},
+data: [1, 1, 2, 2, 3, 3]
+},
+{
+name: 'Live TV',
+type: 'line',
+stack: 'Total',
+smooth: true,
+lineStyle: {
+width: 3,
+color: 'rgba(251, 191, 114, 1)'
+},
+areaStyle: {
+color: {
+type: 'linear',
+x: 0,
+y: 0,
+x2: 0,
+y2: 1,
+colorStops: [{
+offset: 0, color: 'rgba(251, 191, 114, 0.3)'
+}, {
+offset: 1, color: 'rgba(251, 191, 114, 0.1)'
+}]
+}
+},
+emphasis: {
+focus: 'series'
+},
+data: [1, 1, 2, 2, 3, 3]
+}
+]
+};
+chart.setOption(option);
+// Resize chart on window resize
+window.addEventListener('resize', function() {
+chart.resize();
+});
+}
+}
+// Helper functions for opening modals
+window.openVideoPlayer = function(title) {
+videoPlayerModal.classList.add('active');
+videoPlayer.src = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'; // Sample video
+videoPlayer.load();
+videoPlayer.play().catch(e => console.log('Autoplay prevented:', e));
+};
+window.openSeasonModal = function(title) {
+document.getElementById('season-modal-title').textContent = title;
+seasonModal.classList.add('active');
+};
+window.openEpisodeModal = function(title) {
+document.getElementById('episode-modal-title').textContent = title;
+episodeModal.classList.add('active');
+};
+window.openAdminPanel = function() {
+adminPanelModal.classList.add('active');
+initAdminCharts();
+};
+// Add click event to movie items
+const movieItems = document.querySelectorAll('.movie-item');
+movieItems.forEach(item => {
+item.addEventListener('click', function() {
+const title = this.querySelector('h3').textContent;
+openVideoPlayer(title);
+});
+});
+// Add click event to series items
+const seriesItems = document.querySelectorAll('.series-item');
+seriesItems.forEach(item => {
+item.addEventListener('click', function() {
+const title = this.querySelector('h3').textContent;
+openSeasonModal(title);
+});
+});
+// Add click event to live items
+const liveItems = document.querySelectorAll('.live-item');
+liveItems.forEach(item => {
+item.addEventListener('click', function() {
+const title = this.querySelector('h3').textContent;
+openVideoPlayer(title);
+});
+});
+// Close modals when clicking outside
+document.addEventListener('click', function(event) {
+const modals = [loginModal, videoPlayerModal, seasonModal, episodeModal, adminPanelModal, addMovieModal, addSeriesModal, addLiveModal];
+modals.forEach(modal => {
+if (modal && modal.classList.contains('active')) {
+const modalContent = modal.querySelector('.bg-white, .bg-gray-800');
+if (modalContent && !modalContent.contains(event.target) && !event.target.closest('button')) {
+if (modal !== videoPlayerModal) { // Don't close video player when clicking outside
+modal.classList.remove('active');
+}
+}
+}
+});
+});
+// Prevent event propagation from modal content
+const modalContents = document.querySelectorAll('.modal > div');
+modalContents.forEach(content => {
+content.addEventListener('click', function(event) {
+event.stopPropagation();
+});
+});
+// Initialize file input for import
+const selectFileBtn = document.getElementById('select-file-btn');
+const importFileInput = document.getElementById('import-file');
+const importBtn = document.getElementById('import-btn');
+selectFileBtn?.addEventListener('click', function() {
+importFileInput.click();
+});
+importFileInput?.addEventListener('change', function() {
+if (this.files.length > 0) {
+importBtn.disabled = false;
+selectFileBtn.textContent = this.files[0].name;
+} else {
+importBtn.disabled = true;
+selectFileBtn.textContent = 'Select File';
+}
+});
+});
+</script>
+<script>
+  async function fetchData() {
+    if (navigator.onLine) {
+      const res = await fetch('cineflix-data.json');
+      const data = await res.json();
+      localStorage.setItem('cineflixData', JSON.stringify(data));
+      return data;
+    } else {
+      return JSON.parse(localStorage.getItem('cineflixData') || '[]');
+    }
+  }
+
+  function renderContent(data) {
+    const container = document.getElementById('content-container');
+    container.innerHTML = '';
+    data.forEach(item => {
+      const html = `
+        <div class="content-item movie-item" data-type="${item.type}" data-category="${item.category}">
+          <div class="relative group overflow-hidden rounded-lg shadow-md transition-transform hover:scale-105">
+            <img src="${item.poster}" alt="${item.title}" class="w-full h-[270px] object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+              <h3 class="text-white font-bold">${item.title}</h3>
+              <div class="flex items-center text-gray-300 text-sm mt-1">
+                <span>${item.year}</span><span class="mx-2">•</span><span>${item.rating}</span>
+              </div>
+              <button onclick='playVideo(${JSON.stringify(item).replace(/'/g, "&apos;").replace(/"/g, "&quot;")})'
+                class="mt-3 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-button font-medium text-sm transition whitespace-nowrap">
+                <i class="ri-play-fill mr-1"></i> Play
+              </button>
+            </div>
+          </div>
+        </div>`;
+      container.innerHTML += html;
+    });
+  }
+
+  function playVideo(item) {
+    const video = document.getElementById('video-player');
+    const modal = document.getElementById('video-player-modal');
+    video.innerHTML = ''; // Clear previous sources and tracks
+
+    const selectedIndex = item.selectedServerIndex || 0;
+
+    // Add source
+    const source = document.createElement('source');
+    source.src = item.servers[selectedIndex];
+    source.type = 'video/mp4';
+    video.appendChild(source);
+
+    // Add subtitles
+    item.subtitles?.forEach(sub => {
+      const track = document.createElement('track');
+      track.kind = 'subtitles';
+      track.label = sub.lang;
+      track.srclang = sub.lang;
+      track.src = sub.url;
+      video.appendChild(track);
+    });
+
+    video.load();
+    modal.classList.add('active');
+    hookServerSwitch(item);
+    hookSubtitleSwitch();
+  }
+
+  function setServer(index) {
+    const video = document.getElementById('video-player');
+    const currentSrc = video.querySelector('source')?.src;
+    const data = JSON.parse(localStorage.getItem('cineflixData'));
+    const current = data.find(x => x.servers.includes(currentSrc));
+    if (current) {
+      playVideo({
+        ...current,
+        selectedServerIndex: index
+      });
+    }
+  }
+
+  function hookServerSwitch(item) {
+    document.querySelectorAll('.server-option').forEach((btn, index) => {
+      btn.onclick = () => {
+        playVideo({
+          ...item,
+          selectedServerIndex: index
+        });
+      };
+    });
+  }
+
+  function hookSubtitleSwitch() {
+    const video = document.getElementById('video-player');
+    document.querySelectorAll('.subtitle-option').forEach(btn => {
+      btn.onclick = () => {
+        const lang = btn.dataset.subtitle;
+        const tracks = video.querySelectorAll('track');
+        tracks.forEach(track => {
+          track.mode = (track.srclang === lang) ? 'showing' : 'disabled';
+        });
+      };
+    });
+  }
+
+  // Initialize
+  fetchData().then(renderContent);
+</script>
+
+</body>
+</html>

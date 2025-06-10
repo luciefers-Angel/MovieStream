@@ -1,0 +1,155 @@
+[
+  {
+    "title": "The Batman",
+    "type": "movie",
+    "category": "hollywood",
+    "year": 2022,
+    "rating": 8.0,
+    "poster": "https://readdy.ai/api/search-image?query=movie%20poster%20for%20The%20Batman%20...&width=300&height=450&seq=4&orientation=portrait",
+    "servers": ["video/batman-server1.mp4", "video/batman-server2.mp4"],
+    "subtitles": [
+      { "lang": "en", "url": "subtitles/batman-en.vtt" },
+      { "lang": "es", "url": "subtitles/batman-es.vtt" }
+    ]
+  },
+  {
+    "title": "Parasite",
+    "type": "movie",
+    "category": "korean",
+    "year": 2019,
+    "rating": 8.5,
+    "poster": "https://readdy.ai/api/search-image?query=movie%20poster%20for%20Parasite%20...&width=300&height=450&seq=5&orientation=portrait",
+    "servers": ["video/parasite-server1.mp4", "video/parasite-server2.mp4"],
+    "subtitles": [
+      { "lang": "en", "url": "subtitles/parasite-en.vtt" },
+      { "lang": "ko", "url": "subtitles/parasite-ko.vtt" }
+    ]
+  },
+  {
+    "title": "The Wandering Earth",
+    "type": "movie",
+    "category": "chinese",
+    "year": 2019,
+    "rating": 7.9,
+    "poster": "https://readdy.ai/api/search-image?query=movie%20poster%20for%20The%20Wandering%20Earth%20...&width=300&height=450&seq=6&orientation=portrait",
+    "servers": ["video/wandering-server1.mp4"],
+    "subtitles": [
+      { "lang": "en", "url": "subtitles/wandering-en.vtt" },
+      { "lang": "zh", "url": "subtitles/wandering-zh.vtt" }
+    ]
+  },
+  {
+    "title": "Squid Game",
+    "type": "series",
+    "category": "kdrama",
+    "year": 2021,
+    "rating": 8.7,
+    "poster": "https://readdy.ai/api/search-image?query=TV%20series%20poster%20for%20Squid%20Game%20...&width=300&height=450&seq=7&orientation=portrait",
+    "servers": ["video/squid-s1.mp4"],
+    "subtitles": [
+      { "lang": "en", "url": "subtitles/squid-en.vtt" },
+      { "lang": "ko", "url": "subtitles/squid-ko.vtt" }
+    ]
+  },
+  {
+  "title": "Stranger Things",
+  "type": "series",
+  "category": "hollywood",
+  "year": "2016-2022",
+  "rating": 8.7,
+  "poster": "https://readdy.ai/api/search-image?query=TV%20series%20poster%20for%20Stranger%20Things...",
+  "seasons": [
+    {
+      "season": 1,
+      "episodes": [
+        {
+          "episode": 1,
+          "title": "The Vanishing of Will Byers",
+          "duration": "48m",
+          "thumbnail": "https://readdy.ai/api/search-image?query=Stranger%20Things%20episode%201...",
+          "servers": [
+            "video/stranger-s1-e1-server1.mp4",
+            "video/stranger-s1-e1-server2.mp4"
+          ],
+          "subtitles": [
+            { "lang": "en", "url": "subtitles/stranger-s1-e1-en.vtt" },
+            { "lang": "es", "url": "subtitles/stranger-s1-e1-es.vtt" }
+          ]
+        },
+        {
+          "episode": 2,
+          "title": "The Weirdo on Maple Street",
+          "duration": "55m",
+          "thumbnail": "https://readdy.ai/api/search-image?query=Stranger%20Things%20episode%202...",
+          "servers": [
+            "video/stranger-s1-e2-server1.mp4"
+          ],
+          "subtitles": [
+            { "lang": "en", "url": "subtitles/stranger-s1-e2-en.vtt" }
+          ]
+        }
+      ]
+    },
+    {
+      "season": 2,
+      "episodes": [
+        {
+          "episode": 1,
+          "title": "Madmax",
+          "duration": "47m",
+          "thumbnail": "https://readdy.ai/api/search-image?query=Stranger%20Things%20episode%20s2e1...",
+          "servers": [
+            "video/stranger-s2-e1-server1.mp4"
+          ],
+          "subtitles": []
+        }
+      ]
+    }
+  ]
+},
+  {
+    "title": "Attack on Titan",
+    "type": "series",
+    "category": "anime",
+    "year": "2013-2023",
+    "rating": 9.0,
+    "poster": "https://readdy.ai/api/search-image?query=anime%20series%20poster%20for%20Attack%20on%20Titan%20...&width=300&height=450&seq=9&orientation=portrait",
+    "servers": ["video/aot-final.mp4"],
+    "subtitles": [
+      { "lang": "en", "url": "subtitles/aot-en.vtt" },
+      { "lang": "jp", "url": "subtitles/aot-jp.vtt" }
+    ]
+  },
+  {
+    "title": "CNN",
+    "type": "live",
+    "category": "news",
+    "country": "USA",
+    "rating": null,
+    "poster": "https://readdy.ai/api/search-image?query=CNN%20news%20channel%20logo%20...&width=300&height=450&seq=10&orientation=portrait",
+    "servers": ["video/live-cnn.m3u8"],
+    "subtitles": []
+  },
+  {
+    "title": "ESPN",
+    "type": "live",
+    "category": "sports",
+    "country": "Global",
+    "rating": null,
+    "poster": "https://readdy.ai/api/search-image?query=ESPN%20sports%20channel%20logo%20...&width=300&height=450&seq=11&orientation=portrait",
+    "servers": ["video/live-espn.m3u8"],
+    "subtitles": []
+  },
+  {
+    "title": "KBS",
+    "type": "live",
+    "category": "entertainment",
+    "country": "Korea",
+    "rating": null,
+    "poster": "https://readdy.ai/api/search-image?query=KBS%20Korean%20broadcasting%20channel%20logo%20...&width=300&height=450&seq=12&orientation=portrait",
+    "servers": ["video/live-kbs.m3u8"],
+    "subtitles": [
+      { "lang": "ko", "url": "subtitles/kbs-ko.vtt" }
+    ]
+  }
+]
